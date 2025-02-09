@@ -25,9 +25,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           
+      - name: Build Streamlit static files
+        run: |
+          mkdir -p build
+          cp -r * build/ || true
+          echo "<!DOCTYPE html>
+          <html>
+            <head>
+              <meta http-equiv='refresh' content='0; url=https://share.streamlit.io/tingyuansen/arxiv_summary_viewer/main/app.py'>
+            </head>
+          </html>" > build/index.html
+          
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
+          publish_dir: ./build
           force_orphan: true
