@@ -31,22 +31,30 @@ def main():
             font-size: 2rem;
         }
         </style>
+        <script type="text/javascript" async
+            src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+        </script>
     """, unsafe_allow_html=True)
 
     # Sidebar for paper selection
     with st.sidebar:
         st.title("📚 Paper Selection")
         df = load_data()
-        selected_paper = st.selectbox(
-            "Choose a paper",
-            options=df['arxiv_id'].tolist(),
-            format_func=lambda x: f"{x}: {df[df['arxiv_id'] == x]['title'].iloc[0]}"
-        )
-
-    if selected_paper:
-        paper_data = df[df['arxiv_id'] == selected_paper].iloc[0]
         
-        # Main content area
+        # Initialize session state for selected paper
+        if 'selected_paper' not in st.session_state:
+            st.session_state.selected_paper = df['arxiv_id'].iloc[0]
+        
+        # Display all papers as clickable links
+        for _, row in df.iterrows():
+            if st.button(f"{row['arxiv_id']}: {row['title']}", key=row['arxiv_id']):
+                st.session_state.selected_paper = row['arxiv_id']
+    
+    # Display paper content
+    if st.session_state.selected_paper:
+        paper_data = df[df['arxiv_id'] == st.session_state.selected_paper].iloc[0]
+        
+        # Main content area continues...
         st.markdown(f"<h1 class='paper-title'>{paper_data['title']}</h1>", unsafe_allow_html=True)
         
         col1, col2 = st.columns([2, 1])
@@ -65,7 +73,10 @@ def main():
         for tab, section in zip(tabs, [name.lower() for name in tab_names]):
             with tab:
                 st.markdown(f"### {section.title()}")
-                st.write(paper_data[section])
+                # Convert LaTeX delimiters to ones that Streamlit can render
+                content = paper_data[section].replace(r'\[', '$$').replace(r'\]', '$$')
+                content = content.replace(r'\(', '$').replace(r'\)', '$')
+                st.markdown(content)
 
 if __name__ == "__main__":
     main()
