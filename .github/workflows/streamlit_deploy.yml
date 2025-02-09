@@ -14,6 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       
       - name: Set up Python
         uses: actions/setup-python@v2
@@ -25,14 +27,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           
-      - name: Build Streamlit static files
+      - name: Clean and Build
         run: |
+          rm -rf build
           mkdir -p build
           cp -r * build/ || true
           echo "<!DOCTYPE html>
           <html>
             <head>
-              <meta http-equiv='refresh' content='0; url=https://share.streamlit.io/tingyuansen/arxiv_summary_viewer/main/app.py'>
+              <title>ArXiv Summary Viewer</title>
+              <meta http-equiv='refresh' content='0; url=https://arxiv-summary-viewer.streamlit.app'>
             </head>
           </html>" > build/index.html
           
@@ -42,3 +46,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build
           force_orphan: true
+          cname: arxiv-summary-viewer.streamlit.app
